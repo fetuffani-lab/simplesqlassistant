@@ -40,7 +40,10 @@ class AthenaConnector(BaseConnector):
             )
 
         # sso / instance profile — let boto3 resolve automatically
-        return boto3.Session(region_name=cfg.get("region", "us-east-1"))
+        return boto3.Session(
+            profile_name=cfg.get("profile_name") or None,
+            region_name=cfg.get("region", "us-east-1"),
+        )
 
     async def connect(self) -> None:
         cfg = self.info.config
@@ -55,15 +58,20 @@ class AthenaConnector(BaseConnector):
             )
 
             self._athena_client = session.client("athena", region_name=region)
-            self._conn = await asyncio.to_thread(
-                athena_connect,
-                s3_staging_dir=cfg["s3_staging_dir"],
+
+            connect_kwargs: dict = dict(
                 region_name=region,
                 schema_name=cfg.get("schema_name", "default"),
                 aws_access_key_id=creds.access_key,
                 aws_secret_access_key=creds.secret_key,
                 aws_session_token=creds.token,
             )
+            if cfg.get("s3_staging_dir"):
+                connect_kwargs["s3_staging_dir"] = cfg["s3_staging_dir"]
+            if cfg.get("work_group"):
+                connect_kwargs["work_group"] = cfg["work_group"]
+
+            self._conn = await asyncio.to_thread(athena_connect, **connect_kwargs)
             # Smoke-test
             await asyncio.to_thread(self._athena_client.list_work_groups)
             self.info.status = ConnectionStatus.CONNECTED

@@ -25,7 +25,17 @@ export default function ResultsGrid({ tabId }: Props) {
         header: key,
         cell: (info) => {
           const v = info.getValue();
-          return v === null ? <span style={{ color: "#64748b" }}>NULL</span> : String(v);
+          if (v === null) return <span style={{ color: "#64748b" }}>NULL</span>;
+          const s = String(v);
+          if (s.length > 1000) {
+            return (
+              <span title={s}>
+                {s.slice(0, 1000)}
+                <span style={{ color: "#64748b" }}> …+{s.length - 1000}</span>
+              </span>
+            );
+          }
+          return s;
         },
       })
     );
