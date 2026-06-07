@@ -1,109 +1,111 @@
 # SQL Workbench
 
-SQL client web para PostgreSQL e AWS Athena. Substituto do 
+A web-based SQL client for PostgreSQL and AWS Athena.
 
-## Funcionalidades
+## Features
 
-- Editor SQL com syntax highlighting, autocomplete e Ctrl+Enter para executar
-- Múltiplas abas de query renomeáveis
-- Explorer de banco de dados com navegação por conexão → database → schema → tabela → coluna
-- Double-click em tabela insere `schema.tabela` no editor; double-click em coluna insere o nome
-- Histórico de queries com filtro e replay
-- Suporte a parâmetros Jinja (`{{ variavel }}`) com arrays e loops
-- LIMIT automático configurável (padrão 100 linhas)
-- Export para CSV e XLSX com separador de colunas e separador decimal configuráveis
-- Conexões persistidas entre sessões
-- Suporte a múltiplos databases PostgreSQL via conexão secundária inline
-- AWS Athena com autenticação SSO, chave de acesso ou variáveis de ambiente
+- SQL editor with syntax highlighting, autocomplete, and Ctrl+Enter to run
+- Multiple renameable query tabs
+- Database explorer: connection → database → schema → table → column
+- Double-click a table to insert `schema.table` into the active editor; double-click a column to insert its name
+- Query history with search and replay
+- Jinja-style parameters (`{{ variable }}`) with array expansion for batch execution
+- Configurable automatic LIMIT injection (default 100 rows)
+- Export to CSV and XLSX with configurable column and decimal separators
+- Connections persisted across sessions
+- Multi-database PostgreSQL browsing via inline secondary connections
+- AWS Athena with SSO, access key, or environment variable authentication
 
 ---
 
-## Requisitos
+## Requirements
 
-| Componente | Versão mínima |
+| Component | Minimum version |
 |---|---|
 | Python | 3.11 |
 | Node.js | 18 |
 | npm | 9 |
 
-Para rodar via Docker: apenas Docker Desktop.
+To run via Docker: Docker Desktop only, no Python or Node required.
 
 ---
 
-## Instalação — Linux / macOS
+## Installation — Linux / macOS
 
 ```bash
-# 1. Clonar o repositório
+# 1. Clone the repository
 git clone <url> simplesqlassistant
 cd simplesqlassistant
 
-# 2. Variáveis de ambiente
+# 2. Environment variables
 cp .env.example .env
-# edite .env se necessário
+# edit .env if needed
 
-# 3. Ambiente virtual Python
+# 3. Python virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
 
-# 4. Dependências Python
+# 4. Python dependencies
 pip install -r requirements.txt
 
-# 5. Build do frontend (necessário apenas uma vez, ou após atualizações)
+# 5. Frontend build (required once, and after updates)
 cd frontend
 npm install
 npm run build
 cd ..
 
-# 6. Executar
+# 6. Run
 python3 main.py
 ```
 
-Abre automaticamente em `http://localhost:8000`.
+Opens automatically at `http://localhost:8000`.
 
 ---
 
-## Instalação — Windows
+## Installation — Windows
 
 ```bat
-:: 1. Clonar o repositório
+:: 1. Clone the repository
 git clone <url> simplesqlassistant
 cd simplesqlassistant
 
-:: 2. Variáveis de ambiente
+:: 2. Environment variables
 copy .env.example .env
 
-:: 3. Ambiente virtual Python
+:: 3. Python virtual environment
 python -m venv .venv
 .venv\Scripts\activate
 
-:: 4. Dependências Python
+:: 4. Python dependencies
 pip install -r requirements.txt
 
-:: 5. Build do frontend
+:: 5. Frontend build
 cd frontend
 npm install
 npm run build
 cd ..
 
-:: 6. Executar
+:: 6. Run
 python main.py
 ```
 
+Opens automatically at `http://localhost:8000`.
+
 ---
 
-## Instalação — Docker
+## Installation — Docker
 
 ```bash
-# Subir
+# Start
 docker compose up --build
 
-# Parar
+# Stop
 docker compose down
 ```
 
-Os dados (conexões salvas, histórico) são persistidos em `~/.sqlworkbench/`.
+Connections and history are persisted in `~/.sqlworkbench/`.
 
-No Windows, edite `docker-compose.yml` e troque o volume:
+On Windows, edit `docker-compose.yml` and replace the volume mapping:
 ```yaml
 volumes:
   - ${USERPROFILE}/.sqlworkbench:/root/.sqlworkbench
@@ -111,17 +113,19 @@ volumes:
 
 ---
 
-## Configuração (.env)
+## Configuration (.env)
 
-| Variável | Padrão | Descrição |
+| Variable | Default | Description |
 |---|---|---|
-| `PORT` | `8000` | Porta do servidor |
-| `QUERY_DEFAULT_LIMIT` | `100` | Linhas máximas retornadas por query |
-| `SQLWORKBENCH_DATA` | `~/.sqlworkbench` | Diretório para conexões salvas e histórico |
+| `PORT` | `8000` | Server port |
+| `QUERY_DEFAULT_LIMIT` | `100` | Maximum rows returned per query |
+| `RESULTS_PREVIEW_LIMIT` | `1000` | Maximum rows shown in the results grid |
+| `HISTORY_MAX_ENTRIES` | `10000` | Maximum query history entries kept |
+| `SQLWORKBENCH_DATA` | `~/.sqlworkbench` | Directory for saved connections and history |
 
 ---
 
-## Adicionar conexões
+## Adding connections
 
 ### PostgreSQL
 
@@ -129,29 +133,29 @@ volumes:
 {
   "host": "localhost",
   "port": 5432,
-  "database": "meu_banco",
+  "database": "mydb",
   "user": "postgres",
-  "password": "senha"
+  "password": "secret"
 }
 ```
 
-### AWS Athena — SSO / perfil AWS
+### AWS Athena — SSO / AWS profile
 
 ```json
 {
   "region": "us-east-1",
-  "s3_staging_dir": "s3://meu-bucket/athena/",
+  "s3_staging_dir": "s3://my-bucket/athena/",
   "schema_name": "default",
   "auth": "sso"
 }
 ```
 
-### AWS Athena — chave de acesso
+### AWS Athena — access key
 
 ```json
 {
   "region": "us-east-1",
-  "s3_staging_dir": "s3://meu-bucket/athena/",
+  "s3_staging_dir": "s3://my-bucket/athena/",
   "schema_name": "default",
   "auth": "credentials",
   "aws_access_key_id": "AKIA...",
@@ -159,40 +163,47 @@ volumes:
 }
 ```
 
-### AWS Athena — variáveis de ambiente
+### AWS Athena — environment variables
 
 ```json
 {
-  "s3_staging_dir": "s3://meu-bucket/athena/",
+  "s3_staging_dir": "s3://my-bucket/athena/",
   "schema_name": "default",
   "auth": "env"
 }
 ```
 
-Variáveis lidas do ambiente:
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_SESSION_TOKEN` (opcional)
-- `AWS_DEFAULT_REGION`
+Environment variables read from the process:
+
+| Variable | Required |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | yes |
+| `AWS_SECRET_ACCESS_KEY` | yes |
+| `AWS_SESSION_TOKEN` | no (for temporary credentials) |
+| `AWS_DEFAULT_REGION` | no (falls back to `us-east-1`) |
 
 ---
 
-## Uso
+## Usage
 
-### Executar query
-- Selecione a conexão no dropdown do editor
-- Escreva o SQL e pressione **Ctrl+Enter** ou clique em **▶ Run**
+### Running a query
 
-### Parâmetros Jinja
+1. Select a connection from the dropdown in the editor toolbar
+2. Write your SQL
+3. Press **Ctrl+Enter** or click **▶ Run**
+
+### Query parameters (Jinja)
+
 ```sql
 SELECT * FROM orders WHERE status = {{ status }}
 ```
-No painel de parâmetros (abaixo do editor), informe:
+
+In the parameters panel below the editor:
 ```json
 { "status": "pending" }
 ```
 
-Para arrays (gera múltiplas execuções):
+Array values run the query once per element:
 ```sql
 SELECT * FROM orders WHERE region = {{ region }}
 ```
@@ -201,22 +212,26 @@ SELECT * FROM orders WHERE region = {{ region }}
 ```
 
 ### Explorer
-- Expanda uma conexão para ver os databases disponíveis
-- Clique em **connect** ao lado de um database para conectar inline
-- Double-click em uma tabela insere `schema.tabela` no editor ativo
-- Double-click em uma coluna insere o nome da coluna
 
-### Export
-Após executar uma query, clique em **Export…** no painel de resultados. Escolha CSV ou XLSX, separador de colunas e separador decimal.
+- Expand a connection to see all available databases
+- Click **connect** next to a database to browse its schemas inline
+- Double-click a table → inserts `schema.table` into the active editor
+- Double-click a column → inserts the column name
+- Click ↺ on a connection to refresh its tree
+
+### Exporting results
+
+After running a query, click **Export…** in the results panel. Choose format (CSV or XLSX), column separator, and decimal separator.
 
 ---
 
-## Atualizar
+## Updating
 
 ```bash
 git pull
-source .venv/bin/activate       # Linux/macOS
-# ou .venv\Scripts\activate     # Windows
+
+source .venv/bin/activate      # Linux/macOS
+# or .venv\Scripts\activate    # Windows
 
 pip install -r requirements.txt
 
@@ -230,24 +245,24 @@ python3 main.py
 
 ---
 
-## Estrutura do projeto
+## Project structure
 
 ```
 simplesqlassistant/
 ├── backend/
-│   ├── connections/     # Conectores PostgreSQL e Athena
-│   ├── query/           # Executor, templating, histórico, serialização
-│   ├── routers/         # Endpoints FastAPI
-│   ├── ws/              # Handler WebSocket para queries
-│   └── export/          # Exportação CSV/XLSX
+│   ├── connections/     # PostgreSQL and Athena connectors
+│   ├── query/           # Executor, templating, history, row serialization
+│   ├── routers/         # FastAPI endpoints
+│   ├── ws/              # WebSocket handler for query streaming
+│   └── export/          # CSV / XLSX export
 ├── frontend/
 │   └── src/
-│       ├── components/  # UI React
-│       ├── store/       # Estado Zustand
+│       ├── components/  # React UI components
+│       ├── store/       # Zustand state
 │       ├── hooks/       # WebSocket hook
-│       └── lib/         # Registry do editor, cache de schema
+│       └── lib/         # Editor registry, schema cache
 ├── tests/
-├── main.py              # Entrypoint (abre browser + uvicorn)
+├── main.py              # Entry point (starts server + opens browser)
 ├── requirements.txt
 └── .env
 ```
