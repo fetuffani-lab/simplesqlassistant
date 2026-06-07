@@ -11,6 +11,12 @@ interface SavedQuery {
   updated_at: number;
 }
 
+function fmtDate(ts: number): string {
+  const d = new Date(ts * 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 export default function SavedQueries() {
   const [queries, setQueries] = useState<SavedQuery[]>([]);
   const [search, setSearch] = useState("");
@@ -124,11 +130,16 @@ export default function SavedQueries() {
                   style={{ flex: 1, background: "#0d1520", border: "1px solid #2563eb", color: "#e2e8f0", borderRadius: 3, padding: "1px 4px", fontSize: 12, outline: "none" }}
                 />
               ) : (
-                <span
-                  style={{ flex: 1, color: "#cbd5e1", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-                  title="Double-click to open, click pencil to rename"
-                >
-                  {q.name}
+                <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 1 }}>
+                  <span
+                    style={{ color: "#cbd5e1", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                    title="Double-click to open, click pencil to rename"
+                  >
+                    {q.name}
+                  </span>
+                  <span style={{ color: "#334155", fontSize: 10, fontFamily: "monospace" }}>
+                    {fmtDate(q.created_at)}
+                  </span>
                 </span>
               )}
 
