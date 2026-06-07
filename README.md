@@ -1,5 +1,7 @@
 # SQL Workbench
 
+[![tests](https://github.com/fetuffani-lab/simplesqlassistant/actions/workflows/tests.yml/badge.svg)](https://github.com/fetuffani-lab/simplesqlassistant/actions/workflows/tests.yml)
+
 A web-based SQL client for PostgreSQL and AWS Athena.
 
 ## Features
