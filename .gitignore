@@ -45,3 +45,9 @@ Thumbs.db
 
 # User data (runtime state, not source)
 ~/.sqlworkbench/
+
+# Local Claude Code session config
+.claude/
+
+# Generated static entry point
+static/index.html

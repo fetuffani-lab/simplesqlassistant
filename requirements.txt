@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+websockets
+python-dotenv
+sqlalchemy
+psycopg2-binary
+boto3
+pyathena[sqlalchemy]
+jinja2
+openpyxl
+pandas
+aiofiles
