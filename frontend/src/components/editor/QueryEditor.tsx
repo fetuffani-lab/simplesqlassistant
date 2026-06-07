@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import Editor, { OnMount, BeforeMount, Monaco } from "@monaco-editor/react";
 import type * as MonacoEditor from "monaco-editor";
 import { useEditor } from "../../store/editor";
@@ -6,6 +6,7 @@ import { useConnections } from "../../store/connections";
 import { useQuerySocket } from "../../hooks/useQuerySocket";
 import ParamPanel from "./ParamPanel";
 import { registerEditor, unregisterEditor } from "../../lib/editorRegistry";
+import axios from "axios";
 import { getAllTableNames, getAllColumnNames } from "../../lib/schemaCache";
 
 interface Props { tabId: string }
@@ -32,6 +33,9 @@ export default function QueryEditor({ tabId }: Props) {
   const connections = useConnections((s) => s.connections);
   const activeConnId = useConnections((s) => s.activeId);
   const { run, cancel } = useQuerySocket(tabId);
+  const [saving, setSaving] = useState(false);
+  const [saveName, setSaveName] = useState("");
+  const saveInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (tab && !tab.connectionId && activeConnId) {
@@ -54,6 +58,25 @@ export default function QueryEditor({ tabId }: Props) {
   };
 
   handleRunRef.current = handleRun;
+
+  const openSaveDialog = () => {
+    const current = useEditor.getState().tabs.find((t) => t.id === tabId);
+    setSaveName(current?.title ?? "");
+    setSaving(true);
+    setTimeout(() => saveInputRef.current?.select(), 0);
+  };
+
+  const commitSave = async () => {
+    const current = useEditor.getState().tabs.find((t) => t.id === tabId);
+    if (!saveName.trim() || !current?.sql.trim()) return;
+    await axios.post("/api/saved", {
+      name: saveName.trim(),
+      sql: current.sql,
+      connection_id: current.connectionId || null,
+    });
+    setSaving(false);
+    window.dispatchEvent(new CustomEvent("saved:refresh"));
+  };
 
   const handleCancel = () => {
     const current = useEditor.getState().tabs.find((t) => t.id === tabId);
@@ -145,6 +168,23 @@ export default function QueryEditor({ tabId }: Props) {
           </button>
         )}
 
+        <button
+          onClick={openSaveDialog}
+          disabled={!tab.sql.trim()}
+          title="Save query"
+          style={{
+            padding: "3px 10px",
+            background: "none",
+            color: tab.sql.trim() ? "#93c5fd" : "#334155",
+            border: `1px solid ${tab.sql.trim() ? "#2d4a6e" : "#1e293b"}`,
+            borderRadius: 4,
+            cursor: tab.sql.trim() ? "pointer" : "default",
+            fontSize: 12,
+          }}
+        >
+          Save
+        </button>
+
         <span style={{ fontSize: 11, color: "#475569" }}>Ctrl+Enter</span>
 
         {tab.status !== "idle" && (
@@ -155,6 +195,32 @@ export default function QueryEditor({ tabId }: Props) {
           </span>
         )}
       </div>
+
+      {saving && (
+        <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", background: "#0d1a2d", borderBottom: "1px solid #2d4a6e", flexShrink: 0 }}>
+          <span style={{ fontSize: 11, color: "#93c5fd", whiteSpace: "nowrap" }}>Save as:</span>
+          <input
+            ref={saveInputRef}
+            value={saveName}
+            onChange={(e) => setSaveName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commitSave();
+              if (e.key === "Escape") setSaving(false);
+            }}
+            placeholder="Query name…"
+            style={{ flex: 1, background: "#0d1520", border: "1px solid #2563eb", color: "#e2e8f0", borderRadius: 3, padding: "2px 6px", fontSize: 12, outline: "none" }}
+          />
+          <button
+            onClick={commitSave}
+            disabled={!saveName.trim()}
+            style={{ padding: "2px 10px", background: saveName.trim() ? "#1d4ed8" : "#1a2535", color: saveName.trim() ? "#e0eaff" : "#475569", border: "1px solid #2563eb", borderRadius: 3, cursor: saveName.trim() ? "pointer" : "default", fontSize: 12 }}
+          >Save</button>
+          <button
+            onClick={() => setSaving(false)}
+            style={{ padding: "2px 8px", background: "none", color: "#475569", border: "1px solid #1e293b", borderRadius: 3, cursor: "pointer", fontSize: 12 }}
+          >Cancel</button>
+        </div>
+      )}
 
       <div style={{ flex: 1, minHeight: 0 }}>
         <Editor

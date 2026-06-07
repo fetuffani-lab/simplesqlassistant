@@ -12,6 +12,7 @@ from .routers import explorer as explorer_router
 from .routers import history as history_router
 from .routers import export as export_router
 from .routers import stats as stats_router
+from .routers import saved as saved_router
 from .connections import persistence, registry
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ app.include_router(explorer_router.router)
 app.include_router(history_router.router)
 app.include_router(export_router.router)
 app.include_router(stats_router.router)
+app.include_router(saved_router.router)
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static")
 

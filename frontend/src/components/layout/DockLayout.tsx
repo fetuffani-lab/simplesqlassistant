@@ -9,6 +9,7 @@ import DbExplorer from "../explorer/DbExplorer";
 import QueryHistory from "../history/QueryHistory";
 import DbStats from "../status/DbStats";
 import ConnectionManager from "../connections/ConnectionManager";
+import SavedQueries from "../saved/SavedQueries";
 import { insertIntoEditor } from "../../lib/editorRegistry";
 
 function ResultsPanel({ tabId }: { tabId: string }) {
@@ -122,6 +123,7 @@ const defaultLayout: LayoutData = {
           { id: "connections", title: "Connections", content: <ConnectionManager />, cached: true },
           { id: "explorer", title: "Explorer", content: <ExplorerPanel />, cached: true },
           { id: "history", title: "History", content: <QueryHistory />, cached: true },
+          { id: "saved", title: "Saved", content: <SavedQueries />, cached: true },
           { id: "stats", title: "DB Stats", content: <DbStats />, cached: true },
         ],
       },
