@@ -47,6 +47,7 @@ export default function QueryEditor({ tabId }: Props) {
     return () => unregisterEditor(tabId);
   }, [tabId]);
 
+  const editorRef = useRef<MonacoEditor.editor.IStandaloneCodeEditor | null>(null);
   const handleRunRef = useRef<() => void>(() => {});
 
   const handleRun = () => {
@@ -54,7 +55,14 @@ export default function QueryEditor({ tabId }: Props) {
     if (!current?.connectionId || !current.sql.trim()) return;
     let params: unknown = {};
     try { params = JSON.parse(current.params); } catch { params = {}; }
-    run(current.connectionId, current.sql, params);
+
+    const editor = editorRef.current;
+    const selection = editor?.getSelection();
+    const selectedText = (selection && !selection.isEmpty())
+      ? editor?.getModel()?.getValueInRange(selection)?.trim()
+      : undefined;
+
+    run(current.connectionId, selectedText || current.sql, params);
   };
 
   handleRunRef.current = handleRun;
@@ -130,6 +138,7 @@ export default function QueryEditor({ tabId }: Props) {
   };
 
   const handleMount: OnMount = (editor, monaco) => {
+    editorRef.current = editor;
     registerEditor(tabId, editor);
     editor.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
